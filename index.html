@@ -1,1 +1,193 @@
+<html>
+<head>
+	<style>
+		table {
+			border-collapse: collapse;
+		}
 
+		table, th, td {
+			border: 1px solid black;
+		}
+
+		td {
+			width: 40px;
+			text-align: center;
+			vertical-align: center;
+		}
+	</style>
+	<title></title>
+</head>
+<body>
+<script type="text/javascript">
+	function getRandomInt(min, max) {
+		min = Math.ceil(min);
+		max = Math.floor(max);
+		return Math.floor(Math.random() * (max - min + 1)) + min;
+	}
+
+	function randomStep() {
+		var zeroLocation = matrix.findLocation(0);
+		var randomElement = matrix.getRandomStep();
+		if (matrix.exchange(randomElement, zeroLocation))
+			generateTable(matrix);
+	}
+
+	function locationOffset(location, x, y) {
+		return {
+			x: location.x + x,
+			y: location.y + y
+		}
+	}
+
+	function onItemClick(e) {
+		var value = parseInt(e.currentTarget.innerText);
+		if (value === 0)
+			return;
+
+		var clickedLocation = matrix.findLocation(value);
+		var emptyLocation = matrix.findLocation(0);
+
+		if (matrix.exchange(clickedLocation, emptyLocation))
+			generateTable(matrix);
+
+		if (matrix.checkWin())
+			setTimeout(function () {
+				alert("Congratulations!!!");
+			}, 0);
+	}
+
+	function onShuffleClick() {
+		var i = 0;
+		var intervalId = setInterval(function () {
+			i++;
+			randomStep();
+			if (i === 3) {
+				clearInterval(intervalId);
+			}
+		}, 30);
+	}
+
+	function generateTable() {
+		var table = document.createElement('table');
+		for (var i = 0; i < 4; i++) {
+			var tr = document.createElement('tr');
+			for (var j = 0; j < 4; j++) {
+				var td = document.createElement('td');
+
+				td.innerHTML = '<h2>' + (matrix.get(i, j) || '') + '</h2>';
+				td.addEventListener('click', onItemClick);
+
+				tr.appendChild(td);
+			}
+			table.appendChild(tr);
+		}
+
+		document.getElementById('gameContainer').innerHTML = '';
+		document.getElementById('gameContainer').appendChild(table);
+
+		var br = document.createElement('br');
+		document.getElementById('gameContainer').appendChild(br);
+	}
+
+	class Matrix {
+		constructor() {
+			const numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 0];
+			this.matrix = [];
+			for (let i = 0; i < 4; i++) {
+				const row = [];
+				for (let j = 0; j < 4; j++) {
+					row.push(numbers[i * 4 + j]);
+				}
+				this.matrix.push(row);
+			}
+		}
+			
+		get(x, y) {
+			return this.matrix[x][y];
+		}
+			
+		findLocation(item) {
+			for (let i = 0; i < 4; i++) {
+				for (let j = 0; j < 4; j++) {
+					if (this.matrix[i][j] === item)
+						return {
+							value: item,
+							x: i,
+							y: j
+						};
+				}
+			}
+			return null;
+		}
+			
+		checkWin() {
+			for (var i = 0; i < 15; i++) {
+				var x = Math.floor(i / 4);
+				var y = i - x * 4;
+				if (this.matrix[x][y] !== i + 1)
+					return false;
+			}
+			return true;
+		}
+
+		exchange(a, b) {
+			if (a.x === b.x && Math.abs(a.y - b.y) === 1) {
+				this.matrix[a.x][b.y] = a.value;
+				this.matrix[a.x][a.y] = b.value;
+				return true;
+			}
+
+			if (a.y === b.y && Math.abs(a.x - b.x) === 1) {
+				this.matrix[a.x][a.y] = b.value;
+				this.matrix[b.x][a.y] = a.value;
+				return true;
+			}
+
+			return false;
+		}
+
+		getPossibleSteps() {
+			var zeroLocation = this.findLocation(0);
+			var possibleSteps = [];
+			if (zeroLocation.x === 0) {
+				possibleSteps.push(locationOffset(zeroLocation, 1, 0));
+			}
+			else if (zeroLocation.x === 3) {
+				possibleSteps.push(locationOffset(zeroLocation, -1, 0));
+			} else {
+				possibleSteps.push(locationOffset(zeroLocation, 1, 0));
+				possibleSteps.push(locationOffset(zeroLocation, -1, 0));
+			}
+
+			if (zeroLocation.y === 0) {
+				possibleSteps.push(locationOffset(zeroLocation, 0, 1));
+			}
+			else if (zeroLocation.y === 3) {
+				possibleSteps.push(locationOffset(zeroLocation, 0, -1));
+			} else {
+				possibleSteps.push(locationOffset(zeroLocation, 0, 1));
+				possibleSteps.push(locationOffset(zeroLocation, 0, -1));
+			}
+
+			return possibleSteps;
+		}
+
+		getRandomStep() {
+			var possibleSteps = this.getPossibleSteps();
+			var randCoordinates = getRandomInt(0, possibleSteps.length - 1);
+			var randomLocation = possibleSteps[randCoordinates];
+			var valueAtRandomLocation = this.matrix[randomLocation.x][randomLocation.y];
+			return this.findLocation(valueAtRandomLocation);
+		}
+	}
+</script>
+<div id="gameContainer"></div>
+<button onclick="onShuffleClick()">Shuffle</button>
+<script>
+	(function () {
+		window.matrix = new Matrix();
+		generateTable(window.matrix);
+	})();
+</script>
+</body>
+</html>
