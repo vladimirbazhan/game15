@@ -1,0 +1,17 @@
+table {
+	border-collapse: collapse;
+}
+
+table, th, td {
+	border: 1px solid black;
+}
+
+td {
+	width: 40px;
+	text-align: center;
+	vertical-align: center;
+}
+
+button {
+	margin-top: 20px;
+}
